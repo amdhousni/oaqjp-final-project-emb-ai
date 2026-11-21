@@ -1,4 +1,6 @@
-# Emotion Detector
+# Final project
+
+## Emotion Detector
 
 An AI-based web application that detects the emotions expressed in a piece of
 text. The application is built with Python, the Watson NLP library and Flask.

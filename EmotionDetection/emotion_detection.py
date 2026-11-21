@@ -22,6 +22,8 @@ EMOTIONS = ["anger", "disgust", "fear", "joy", "sadness"]
 _LEXICON = {
     "anger": {
         "mad": 0.97,
+        "hate": 0.96,
+        "hated": 0.93,
         "angry": 0.95,
         "furious": 0.96,
         "annoyed": 0.88,
@@ -47,6 +49,10 @@ _LEXICON = {
     "joy": {
         "glad": 0.96,
         "happy": 0.95,
+        "love": 0.97,
+        "loved": 0.94,
+        "fun": 0.88,
+        "enjoy": 0.91,
         "joyful": 0.94,
         "delighted": 0.95,
         "excited": 0.90,
