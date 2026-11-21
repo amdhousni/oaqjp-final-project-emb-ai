@@ -3,3 +3,9 @@ __pycache__/
 .venv/
 .DS_Store
 server.log
+
+# local helpers
+make_screenshots.py
+server_cors.py
+capture.txt
+cors.log
