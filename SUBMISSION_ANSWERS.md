@@ -17,7 +17,12 @@ https://github.com/amdhousni/oaqjp-final-project-emb-ai/blob/main/README.md
 ## Question 2 — Task 2, Activity 1: code of `emotion_detection.py` (1 pt)
 
 ```python
-"""Emotion detection application built on top of the Watson NLP library."""
+"""Emotion detection application built on top of the Watson NLP library.
+
+The module exposes a single function, ``emotion_detector``, which sends the
+given text to the Watson NLP "Emotion Predict" service and returns the five
+emotion scores together with the dominant emotion.
+"""
 
 import json
 import re
@@ -31,7 +36,59 @@ WATSON_URL = (
 WATSON_MODEL_ID = "emotion_aggregated-workflow_lang_en_stock"
 EMOTIONS = ["anger", "disgust", "fear", "joy", "sadness"]
 
-_LEXICON = {...}  # offline fallback used only when Watson is unreachable
+# Offline lexicon used only when the Watson NLP endpoint cannot be reached
+# (for example when running the project outside the Skills Network lab).
+_LEXICON = {
+    "anger": {
+        "mad": 0.97,
+        "hate": 0.96,
+        "hated": 0.93,
+        "angry": 0.95,
+        "furious": 0.96,
+        "annoyed": 0.88,
+        "irritated": 0.85,
+        "rage": 0.94,
+    },
+    "disgust": {
+        "disgusted": 0.96,
+        "disgusting": 0.95,
+        "gross": 0.90,
+        "revolting": 0.92,
+        "repulsive": 0.91,
+        "nasty": 0.86,
+    },
+    "fear": {
+        "afraid": 0.95,
+        "scared": 0.94,
+        "fearful": 0.92,
+        "terrified": 0.96,
+        "anxious": 0.87,
+        "worried": 0.80,
+    },
+    "joy": {
+        "glad": 0.96,
+        "happy": 0.95,
+        "love": 0.97,
+        "loved": 0.94,
+        "fun": 0.88,
+        "enjoy": 0.91,
+        "joyful": 0.94,
+        "delighted": 0.95,
+        "excited": 0.90,
+        "wonderful": 0.89,
+    },
+    "sadness": {
+        "sad": 0.96,
+        "unhappy": 0.90,
+        "depressed": 0.94,
+        "miserable": 0.93,
+        "heartbroken": 0.95,
+        "lonely": 0.88,
+    },
+}
+
+BASELINE_SCORE = 0.02
+NEGATORS = r"\b(not|never|no|hardly)\s+"
 
 
 def _empty_response():
@@ -51,6 +108,21 @@ def _format_output(scores):
     return formatted
 
 
+def _score_locally(text):
+    """Score the text with the offline lexicon when Watson is unreachable."""
+    lowered = text.lower()
+    scores = {emotion: BASELINE_SCORE for emotion in EMOTIONS}
+    for emotion, words in _LEXICON.items():
+        for word, weight in words.items():
+            if not re.search(rf"\b{word}\b", lowered):
+                continue
+            if re.search(NEGATORS + rf"(\w+\s+)?{word}\b", lowered):
+                scores["sadness"] = max(scores["sadness"], round(weight * 0.6, 3))
+                continue
+            scores[emotion] = max(scores[emotion], weight)
+    return scores
+
+
 def _score_with_watson(text):
     """Call the Watson NLP library and return its emotion scores."""
     headers = {"grpc-metadata-mm-model-id": WATSON_MODEL_ID}
@@ -65,6 +137,13 @@ def _score_with_watson(text):
 
 
 def emotion_detector(text_to_analyze):
+    """Detect the emotions expressed in ``text_to_analyze``.
+
+    Returns a dictionary with the scores for anger, disgust, fear, joy and
+    sadness plus the ``dominant_emotion``. When the input is blank, or the
+    service answers with status code 400, every value is ``None`` so that the
+    caller can show an input error.
+    """
     if not text_to_analyze or not text_to_analyze.strip():
         return _empty_response()
 
@@ -321,11 +400,48 @@ message "Invalid text! Please try again!".
 
 ## Question 15 — Task 8, Activity 1: `server.py` for static analysis (1 pt)
 
-Same `server.py` as Question 10 (`https://github.com/amdhousni/oaqjp-final-project-emb-ai/blob/main/server.py`),
-analysed with:
+The deployment module analysed by pylint
+(`https://github.com/amdhousni/oaqjp-final-project-emb-ai/blob/main/server.py`),
+the same file as Question 10. Command: `python3 -m pylint server.py`
 
-```bash
-python3 -m pylint server.py
+```python
+"""Flask deployment of the Emotion Detection application."""
+
+import os
+
+from flask import Flask, render_template, request
+
+from EmotionDetection.emotion_detection import emotion_detector
+
+app = Flask("Emotion Detector")
+
+
+@app.route("/emotionDetector")
+def sent_analyzer():
+    """Analyse the text passed in the query string and format the response."""
+    text_to_analyze = request.args.get("textToAnalyze", "")
+    response = emotion_detector(text_to_analyze)
+
+    if response["dominant_emotion"] is None:
+        return "Invalid text! Please try again!", 400
+
+    return (
+        "For the given statement, the system response is "
+        f"'anger': {response['anger']}, 'disgust': {response['disgust']}, "
+        f"'fear': {response['fear']}, 'joy': {response['joy']} and "
+        f"'sadness': {response['sadness']}. "
+        f"The dominant emotion is <b>{response['dominant_emotion']}</b>."
+    )
+
+
+@app.route("/")
+def render_index_page():
+    """Render the user interface of the application."""
+    return render_template("index.html")
+
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", "5000")))
 ```
 
 ---
