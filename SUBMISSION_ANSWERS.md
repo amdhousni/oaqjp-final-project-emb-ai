@@ -1,13 +1,12 @@
 # Emotion Detector — Final Project Submission Answers
 
-Repository URL pattern: `https://github.com/<your-user>/<your-repo>`
-Replace `<REPO>` below with that URL after pushing.
+Repository URL: **https://github.com/amdhousni/emotion-detector**
 
 ---
 
 ## Task 1 — GitHub repository URL (1 pt)
 
-**Answer:** `<REPO>`
+**Answer:** `https://github.com/amdhousni/emotion-detector`
 
 `README.md` describes the project name (Emotion Detector), the structure,
 installation, run, test and static analysis commands.
@@ -93,7 +92,7 @@ Output keys: `anger`, `disgust`, `fear`, `joy`, `sadness`, `dominant_emotion`.
 
 ### Activity 1 — repository URL of `__init__.py`
 
-`<REPO>/blob/main/EmotionDetection/__init__.py`
+`https://github.com/amdhousni/emotion-detector/blob/main/EmotionDetection/__init__.py`
 
 ```python
 """EmotionDetection package."""
